@@ -8,6 +8,7 @@ public class Client {
     private static final int SERVER_PORT = 23456;
 
     public static String getLineFromInput() {
+        // scan a line from the input
         Scanner scan = new Scanner(System.in);
         if (scan.hasNextLine()) {
             return scan.nextLine();
@@ -16,6 +17,7 @@ public class Client {
         }
     }
     private static int chooseAction() {
+        // loop until user enters a number between 0 and 3
         int action = -1;
         while (!(0 <= action && action <= 3)) {
             System.out.print("Enter action (1 - get a file, 2 - create a file, 3 - delete a file): ");
@@ -30,6 +32,7 @@ public class Client {
     }
 
     private static String createRequest(int action) {
+        // create a request string e.g. GET FILENAME
         if (action == 0) {
             return "POST /shutdown";
         }
@@ -59,19 +62,26 @@ public class Client {
         ) {
             int action = chooseAction();
             String request = createRequest(action);
-            output.writeUTF(request); // send a message to the server
+            output.writeUTF(request); // send a request to the server
             System.out.println("The request was sent.");
-            String code = input.readUTF(); // read the reply from the server
+            String code = input.readUTF(); // read the reply status code from the server
             switch (action) {
-                case 0 -> {
-                    if ("200".equals(code)) System.out.println("Server shutdown successful");
+                case 0 -> { // only /shutdown is implemented
+                    if ("200".equals(code)) System.out.println("Server shutdown successful.");
                 }
-                case 1 -> System.out.println("unimplemented");
-                case 2 -> {
+                case 1 -> { // GET
+                    if (code.startsWith("200")) {
+                        String content = code.substring(4); // skip the 200 and space
+                        System.out.println("The content of the file is: "+content);
+                    } else if ("404".equals(code)) {
+                        System.out.println("The response says that the file was not found!");
+                    }
+                }
+                case 2 -> { // PUT
                     switch (code) {
                         case "200" -> System.out.println("The response says that the file was created!");
                         case "403" -> System.out.println("The response says that creating the file was forbidden!");
-                        case "404" -> System.out.println("The response says the file directory was not found");
+                        case "404" -> System.out.println("The response says the file directory was not found.");
                     }
                 }
                 case 3 -> System.out.println("unimplemented");

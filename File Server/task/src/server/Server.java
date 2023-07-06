@@ -44,7 +44,7 @@ public class Server {
                             }
                             String response = switch (command) {
                                 case "POST" -> "200";
-                                case "GET" -> "200";
+                                case "GET" -> data.get(fileName);
                                 case "PUT" -> data.put(fileName, content);
                                 case "DELETE" -> "200";
                                 default -> "400";
