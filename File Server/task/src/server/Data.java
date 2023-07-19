@@ -1,9 +1,6 @@
 package server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +8,7 @@ import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Data {
-    private final String PATH = "/File Server/task/src/server/data/";
+    private final String PATH = "/home/zinzan/IdeaProjects/File Server/File Server/task/src/server/data/";
     private Map<Integer, String> fileIDs = new ConcurrentHashMap<>();
 
     private int getNextID() { // get the next lowest unused file ID
@@ -32,13 +29,13 @@ public class Data {
         }
     }
 
-    public String put(String fileName, String content) {
+    public String put(String fileName, byte[] content) {
         File newFile = new File(PATH+fileName);
         try {
             boolean hasCreated = newFile.createNewFile();
             if (hasCreated) {
-                try (FileWriter writer = new FileWriter(newFile)) {
-                    writer.write(content);
+                try (FileOutputStream outputStream = new FileOutputStream(newFile)) {
+                    outputStream.write(content); // write content to new file
                 }
                 int ID = getNextID();
                 fileIDs.put(ID, fileName);
@@ -47,6 +44,7 @@ public class Data {
                 return "403";
             }
         } catch (IOException e) {
+            e.printStackTrace();
             return "404";
         }
     }

@@ -32,7 +32,8 @@ public class Server {
                             request = input.readUTF(); // read a message from the client
                             System.out.println("Received: " + request);
                             String[] components = request.split(" ");
-                            String command, fileName = null, content = null;
+                            String command, fileName = null;
+                            byte[] content = new byte[0];
                             if (components.length >= 2) {
                                 command = components[0];
                                 fileName = components[1];
@@ -40,7 +41,7 @@ public class Server {
                                 command = "N/A";
                             }
                             if ("PUT".equals(command)) {
-                                content = getContent(components);
+                                content = client.Binary.getBytesFromStream(input);
                             }
                             String response = switch (command) {
                                 case "POST" -> "200";

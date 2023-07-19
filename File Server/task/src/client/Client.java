@@ -6,6 +6,7 @@ import java.util.Scanner;
 public class Client {
     private static final String SERVER_ADDRESS = "127.0.0.1";
     private static final int SERVER_PORT = 23456;
+    private static byte[] fileContent;
 
     public static String getLineFromInput() {
         // scan a line from the input
@@ -43,12 +44,15 @@ public class Client {
             default -> "?"; // impossible if chooseAction() is used to generate the action
         };
         StringBuilder request = new StringBuilder(command);
-        request.append(" ");
-        System.out.print("Enter filename: ");
-        request.append(getLineFromInput());
         if ("PUT".equals(command)) {
+            System.out.print("Enter the name of the file: ");
+            fileContent = Binary.getBytesFromFile(getLineFromInput());
+            System.out.println("Enter the name of the file to be saved on the server: ");
             request.append(" ");
-            System.out.print("Enter file content: ");
+            request.append(getLineFromInput());
+        } else {
+            request.append(" ");
+            System.out.print("Enter filename: ");
             request.append(getLineFromInput());
         }
         return request.toString();
@@ -64,6 +68,10 @@ public class Client {
             String request = createRequest(action);
             output.writeUTF(request); // send a request to the server
             System.out.println("The request was sent.");
+            if (action == 2) {
+                Binary.sendBytesToStream(output, fileContent);
+                System.out.println("The data was sent.");
+            }
             String code = input.readUTF(); // read the reply status code from the server
             switch (action) {
                 case 0 -> { // only /shutdown is implemented
