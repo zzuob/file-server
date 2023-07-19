@@ -84,7 +84,12 @@ public class Client {
                         case "404" -> System.out.println("The response says the file directory was not found.");
                     }
                 }
-                case 3 -> System.out.println("unimplemented");
+                case 3 -> { // DELETE
+                    switch (code) {
+                        case "200" -> System.out.println("The response says that the file was successfully deleted!");
+                        case "404" -> System.out.println("The response says that the file was not found!");
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

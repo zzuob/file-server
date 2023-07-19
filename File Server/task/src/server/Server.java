@@ -46,7 +46,7 @@ public class Server {
                                 case "POST" -> "200";
                                 case "GET" -> data.get(fileName);
                                 case "PUT" -> data.put(fileName, content);
-                                case "DELETE" -> "200";
+                                case "DELETE" -> data.delete(fileName);
                                 default -> "400";
                             };
                             output.writeUTF(response);

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Data {
-    private final String PATH = "File Server/task/src/server/data/";
+    private final String PATH = "/File Server/task/src/server/data/";
 
     public String put(String fileName, String content) {
         File newFile = new File(PATH+fileName);
@@ -39,6 +39,15 @@ public class Data {
             return response.toString(); // return status code and content of file
         } catch (FileNotFoundException e) {
             return "404"; // file not found
+        }
+    }
+
+    public String delete(String fileName) {
+        File file = new File(PATH+fileName);
+        if (file.delete()) {
+            return "200";
+        } else {
+            return "404";
         }
     }
 
