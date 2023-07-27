@@ -1,10 +1,9 @@
 package server;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Data {
@@ -50,16 +49,22 @@ public class Data {
     }
 
     public String get(String fileName) {
-        File file = new File(PATH+fileName);
-        try (Scanner scan = new Scanner(file)) {
-            StringBuilder response = new StringBuilder("200 "); // file found
-            while (scan.hasNext()) {
-                response.append(scan.nextLine());
-                response.append("\n");
-            }
-            return response.toString(); // return status code and content of file
-        } catch (FileNotFoundException e) {
+        // check if file can be read
+        try {
+            Files.readAllBytes(Path.of(PATH + fileName));
+            return "200";
+
+        } catch (IOException e) {
             return "404"; // file not found
+        }
+    }
+
+    public byte[] getFileBytes(String fileName) {
+        try {
+            return Files.readAllBytes(Path.of(PATH + fileName));
+
+        } catch (IOException e) {
+            return new byte[0];
         }
     }
 

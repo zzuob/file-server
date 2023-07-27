@@ -7,6 +7,7 @@ public class Client {
     private static final String SERVER_ADDRESS = "127.0.0.1";
     private static final int SERVER_PORT = 23456;
     private static byte[] fileContent;
+    public static String PATH = "File Server/task/src/client/data/";
 
     public static String getLineFromInput() {
         // scan a line from the input
@@ -46,7 +47,7 @@ public class Client {
         StringBuilder request = new StringBuilder(command);
         if ("PUT".equals(command)) {
             System.out.print("Enter the name of the file: ");
-            fileContent = Binary.getBytesFromFile(getLineFromInput());
+            fileContent = Binary.getBytesFromFile(PATH+getLineFromInput());
             System.out.println("Enter the name of the file to be saved on the server: ");
             request.append(" ");
             request.append(getLineFromInput());
@@ -79,8 +80,12 @@ public class Client {
                 }
                 case 1 -> { // GET
                     if (code.startsWith("200")) {
-                        String content = code.substring(4); // skip the 200 and space
-                        System.out.println("The content of the file is: "+content);
+                        System.out.println("The file was downloaded! Specify a name for it:");
+                        String newFilename = getLineFromInput();
+                        byte[] newContent = Binary.getBytesFromStream(input);
+                        Binary.createFileFromBytes(PATH+newFilename,newContent);
+                        System.out.println("File saved on the hard drive!");
+
                     } else if ("404".equals(code)) {
                         System.out.println("The response says that the file was not found!");
                     }

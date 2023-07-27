@@ -1,7 +1,10 @@
 package server;
 
+import client.Binary;
+
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 public class Server {
 
@@ -51,6 +54,10 @@ public class Server {
                                 default -> "400";
                             };
                             output.writeUTF(response);
+                            if ("GET".equals(command) && "200".equals(response)) {
+                                content = data.getFileBytes(fileName);
+                                Binary.sendBytesToStream(output, content);
+                            }
                             System.out.println("Sent: " + response);
 
                     }
