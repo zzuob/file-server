@@ -33,9 +33,9 @@ public class Data {
         try {
             boolean hasCreated = newFile.createNewFile();
             if (hasCreated) {
-                try (FileOutputStream outputStream = new FileOutputStream(newFile)) {
-                    outputStream.write(content); // write content to new file
-                }
+                FileOutputStream outputStream = new FileOutputStream(newFile);
+                outputStream.write(content);
+                outputStream.close();
                 int ID = getNextID();
                 fileIDs.put(ID, fileName);
                 return "200";
