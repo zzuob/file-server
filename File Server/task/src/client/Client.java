@@ -6,104 +6,26 @@ import java.util.Scanner;
 public class Client {
     private static final String SERVER_ADDRESS = "127.0.0.1";
     private static final int SERVER_PORT = 23456;
-    private static byte[] fileContent;
-    public static String PATH = "File Server/task/src/client/data/";
-
-    public static String getLineFromInput() {
-        // scan a line from the input
-        Scanner scan = new Scanner(System.in);
-        if (scan.hasNextLine()) {
-            return scan.nextLine();
-        } else {
-            return "";
-        }
-    }
-    private static int chooseAction() {
-        // loop until user enters a number between 0 and 3
-        int action = -1;
-        while (!(0 <= action && action <= 3)) {
-            System.out.print("Enter action (1 - get a file, 2 - create a file, 3 - delete a file): ");
-            String input = getLineFromInput();
-            if (input.matches("\\d+")) {
-                action = Integer.parseInt(input);
-            } else if ("exit".equals(input)) {
-                action = 0;
-            }
-        }
-        return action;
-    }
-
-    private static String createRequest(int action) {
-        // create a request string e.g. GET FILENAME
-        if (action == 0) {
-            return "POST /shutdown";
-        }
-        String command = switch (action) {
-            case 1 -> "GET";
-            case 2 -> "PUT";
-            case 3 -> "DELETE";
-            default -> "?"; // impossible if chooseAction() is used to generate the action
-        };
-        StringBuilder request = new StringBuilder(command);
-        if ("PUT".equals(command)) {
-            System.out.print("Enter the name of the file: ");
-            fileContent = Binary.getBytesFromFile(PATH+getLineFromInput());
-            System.out.println("Enter the name of the file to be saved on the server: ");
-            request.append(" ");
-            request.append(getLineFromInput());
-        } else {
-            request.append(" ");
-            System.out.print("Enter filename: ");
-            request.append(getLineFromInput());
-        }
-        return request.toString();
-    }
 
     public static void main(String[] args) {
-        try (
-                Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-                DataInputStream input = new DataInputStream(socket.getInputStream());
-                DataOutputStream output  = new DataOutputStream(socket.getOutputStream())
+        Menu menu = new Menu();
+        try (Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+             DataInputStream input = new DataInputStream(socket.getInputStream());
+             DataOutputStream output  = new DataOutputStream(socket.getOutputStream())
         ) {
-            int action = chooseAction();
-            String request = createRequest(action);
+            int choice = menu.chooseAction(Menu.MAIN_PROMPT, Action.values().length, true);
+            Action action = Action.values()[choice];
+            ReplyHandler handler = new ReplyHandler(action);
+            String request = menu.createRequest(action);
             output.writeUTF(request); // send a request to the server
+            if (action == Action.PUT) {
+                byte[] content = menu.getFileBytes();
+                output.writeInt(content.length);
+                output.write(content);
+            }
             System.out.println("The request was sent.");
-            if (action == 2) {
-                Binary.sendBytesToStream(output, fileContent);
-                System.out.println("The data was sent.");
-            }
-            String code = input.readUTF(); // read the reply status code from the server
-            switch (action) {
-                case 0 -> { // only /shutdown is implemented
-                    if ("200".equals(code)) System.out.println("Server shutdown successful.");
-                }
-                case 1 -> { // GET
-                    if (code.startsWith("200")) {
-                        System.out.println("The file was downloaded! Specify a name for it:");
-                        String newFilename = getLineFromInput();
-                        byte[] newContent = Binary.getBytesFromStream(input);
-                        Binary.createFileFromBytes(PATH+newFilename,newContent);
-                        System.out.println("File saved on the hard drive!");
-
-                    } else if ("404".equals(code)) {
-                        System.out.println("The response says that the file was not found!");
-                    }
-                }
-                case 2 -> { // PUT
-                    switch (code) {
-                        case "200" -> System.out.println("The response says that the file was created!");
-                        case "403" -> System.out.println("The response says that creating the file was forbidden!");
-                        case "404" -> System.out.println("The response says the file directory was not found.");
-                    }
-                }
-                case 3 -> { // DELETE
-                    switch (code) {
-                        case "200" -> System.out.println("The response says that the file was successfully deleted!");
-                        case "404" -> System.out.println("The response says that the file was not found!");
-                    }
-                }
-            }
+            // read and process the reply from the server, then print the outcome
+            System.out.println(handler.runOperation(input.readUTF(), input, output));
         } catch (IOException e) {
             e.printStackTrace();
         }
